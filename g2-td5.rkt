@@ -95,4 +95,70 @@
   (if (null? l) l
       (insere (car l) (tri (cdr l)))))
 
-(tri '(10 2 5 3 9 4 4))
+;(tri '(10 2 5 3 9 4 4))
+
+; Exercice 5
+; Solution 1 : aucun support pour les chaîens de caractères avec accents
+(define (phrase1 ch)
+  ; renvoie une liste des mots de ch
+  ; chaîne de caractères -> liste de chaînes
+  (chercheMot1 ch))
+
+(define (lettre? c)
+  ; renvoie vrai ssi c est une lettre
+  ; caractère -> booléen
+  (and (char-ci>=? c #\a) (char-ci<=? c #\z)))
+
+(define (chercheMot1 ch)
+  ; renvoie la liste des mots de ch
+  ; chaîne de caractères -> liste de chaînes
+  (let ((lg (string-length ch)))
+    (cond ((= lg 0) '())
+          ((lettre? (string-ref ch 0)) (litMot1 (substring ch 0 1) (substring ch 1 lg)))
+          (else (chercheMot1 (substring ch 1 lg))))))
+
+(define (litMot1 c ch)
+  ; renvoie la liste des mots de (string-append c ch)
+  ; c est une lettre
+   ; string non vide car une lettre, chaîne -> liste de chaînes
+  (let ((lg (string-length ch)))
+    (cond ((= lg 0) (list c))
+          ((lettre? (string-ref ch 0)) (litMot1 (string-append c (substring ch 0 1)) (substring ch 1 lg)))
+          (else (cons c (chercheMot1 (substring ch 1 lg)))))))
+
+; Solution 2 : Accents acceptés
+; Une liste de séparateurs est fournie à l'appel de phrase
+(define (phrase2 ch l)
+  ; renvoie la liste des mots de ch en considérant les caractères de l comme séparateurs
+  ; chaîne, liste de caractères -> liste de chaînes
+  (chercheMot2 ch l))
+
+(define (appartient? c l)
+  ; renvoie vrai ssi c est élément de l
+  ; caractère, liste de caractères -> booléen
+  (and (not (null? l))
+       (or (char=? c (car l))
+           (appartient? c (cdr l)))))
+
+(define (chercheMot2 ch l)
+  ; renvoie la liste des mots de ch en considérant les caractères de l comme séparateurs
+  ; chaîne, liste de caractères -> liste de chaînes
+  (let ((lg (string-length ch)))
+    (cond ((= lg 0) '())
+          ((appartient? (string-ref ch 0) l) (chercheMot2 (substring ch 1 lg) l))
+          (else (litMot2 (substring ch 0 1) (substring ch 1 lg) l)))))
+
+(define (litMot2 c ch l)
+  ; renvoie la liste des mots de (string-append m ch) en considérant les caractères de l comme séparateurs
+  ; m ne contient que des lettres
+  ; chaîne non vide, chaîne, liste de caractères -> liste de chaines
+  (let ((lg (string-length ch)))
+    (cond ((= lg 0) (list c))
+          ((appartient? (string-ref ch 0) l) (cons c (chercheMot2 (substring ch 1 lg) l)))
+          (else (litMot2 (string-append c (substring ch 0 1)) (substring ch 1 lg) l)))))
+
+; programme test
+(phrase1 "Voici, par exemple, une belle phrase : des questions ?")
+(phrase2 "Voici, par exemple, une belle phrase : des questions ?" '(#\space #\. #\, #\? #\! #\: #\;))
+(phrase2 "Cette deuxième solution supporte aussi les signes diacritiques comme les lettres accentuées !" '(#\space #\. #\, #\? #\! #\: #\;))
+(phrase1 "Ce n'est absolument pas le cas pour la première solution.")
